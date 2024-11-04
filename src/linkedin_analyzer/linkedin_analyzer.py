@@ -33,9 +33,10 @@ class ConnectionInsight:
     common_interests: List[str]
 
 class LinkedInAnalyzer:
-    def __init__(self, config_path: str, output_dir: str = None):
+    def __init__(self, config_path: str, output_dir: str = None, profile_path: str = None):
         # Load config first
         self.config = self._load_config(config_path)
+        
         
         # Get the directory where the script is located
         script_dir = Path(__file__).parent.absolute()
@@ -51,6 +52,11 @@ class LinkedInAnalyzer:
         
         # Setup logging last, after output_path is created
         self.setup_logging()
+        # Load profile data
+        self.profile_path = profile_path or "Profile.csv"
+        self.full_name = self._load_profile_data()
+        
+
 
     def _load_config(self, config_path: str) -> Dict:
         with open(config_path, 'r') as f:
@@ -730,36 +736,31 @@ class LinkedInAnalyzer:
         Generate reconnection suggestions based on messaging history and time since last contact.
         Only includes connections with at least 3 messages exchanged.
         """
-        logging.info("Starting generate_message_based_reconnections at line 755")
+        logging.info("Starting generate_message_based_reconnections")
         
-        # Get the user's full name from config
-        full_name = self.config.get('full_name')
-        if not full_name:
-            logging.warning("full_name not found in config at line 760. Message analysis may be inaccurate.")
+        # Use the loaded full name instead of getting it from config
+        if not self.full_name:
+            logging.warning("full_name not available. Message analysis may be inaccurate.")
             return {}
 
-        # Log DataFrame columns for debugging
-        logging.info(f"messages_df columns: {messages_df.columns.tolist()} at line 764")
-        logging.info(f"connections_df columns: {connections_df.columns.tolist()} at line 765")
-        
         # Create a column for the other party in each conversation
         try:
             messages_df['other_party'] = messages_df.apply(
-                lambda row: row['TO'] if row['FROM'] == full_name else row['FROM'], 
+                lambda row: row['TO'] if row['FROM'] == self.full_name else row['FROM'], 
                 axis=1
             )
-            logging.info("Successfully created other_party column at line 773")
+            logging.info("Successfully created other_party column")
         except KeyError as e:
-            logging.error(f"KeyError when creating other_party column at line 774: {str(e)}")
+            logging.error(f"KeyError when creating other_party column: {str(e)}")
             logging.error(f"Available columns were: {messages_df.columns.tolist()}")
             raise
 
         # Count total messages per conversation (both sent and received)
         try:
             message_counts = messages_df.groupby('other_party').size().reset_index(name='message_count')
-            logging.info("Successfully created message_counts at line 781")
+            logging.info("Successfully created message_counts")
         except Exception as e:
-            logging.error(f"Error creating message_counts at line 782: {str(e)}")
+            logging.error(f"Error creating message_counts: {str(e)}")
             raise
         
         # Filter for connections with at least 3 messages
@@ -772,9 +773,9 @@ class LinkedInAnalyzer:
                 .max()
                 .reset_index()
             )
-            logging.info("Successfully created last_message_dates at line 794")
+            logging.info("Successfully created last_message_dates")
         except Exception as e:
-            logging.error(f"Error creating last_message_dates at line 795: {str(e)}")
+            logging.error(f"Error creating last_message_dates: {str(e)}")
             raise
 
         # Calculate time since last message
@@ -883,6 +884,24 @@ Messages: {contact['message_count']} | Years Since: {contact['years_since_contac
                 if period in message_suggestions:
                     f.write(f"{period_headers[period]}: {len(message_suggestions[period])} contacts\n")
 
+    def _load_profile_data(self) -> str:
+        """Load profile data from CSV and construct full name."""
+        try:
+            profile_df = pd.read_csv(self.profile_path)
+            if 'First Name' in profile_df.columns and 'Last Name' in profile_df.columns:
+                # Get the first row's first and last name
+                first_name = profile_df['First Name'].iloc[0]
+                last_name = profile_df['Last Name'].iloc[0]
+                full_name = f"{first_name} {last_name}".strip()
+                logging.info(f"Loaded profile data for: {full_name}")
+                return full_name
+            else:
+                logging.error("Profile CSV missing required columns: 'First Name' and/or 'Last Name'")
+                raise ValueError("Profile CSV must contain 'First Name' and 'Last Name' columns")
+        except Exception as e:
+            logging.error(f"Error loading profile data: {str(e)}")
+            raise
+
 
 @click.group()
 def cli():
@@ -893,14 +912,15 @@ def cli():
 @click.option('--config', default='config.yml', help='Path to configuration file')
 @click.option('--connections', required=True, help='Path to connections export CSV')
 @click.option('--messages', required=True, help='Path to messages export CSV')
+@click.option('--profile', default='Profile.csv', help='Path to profile CSV containing first and last name')
 @click.option('--output', default='linkedin_insights', help='Output file base name')
 @click.option('--output-dir', help='Output directory path')
 @click.option('--reconnect/--no-reconnect', default=True, help='Generate reconnection suggestions')
 @click.option('--format', default='all', type=click.Choice(['json', 'csv', 'pdf', 'html', 'all']))
-def analyze(config: str, connections: str, messages: str, output: str, output_dir: str, format: str, reconnect: bool):
+def analyze(config: str, connections: str, messages: str, profile: str, output: str, output_dir: str, format: str, reconnect: bool):
     """Analyze LinkedIn network and generate comprehensive insights."""
     try:
-        analyzer = LinkedInAnalyzer(config, output_dir)
+        analyzer = LinkedInAnalyzer(config, output_dir, profile)
         console.print("[bold green]Loading and processing data...[/bold green]")
         
         with console.status("[bold green]Analyzing network...") as status:

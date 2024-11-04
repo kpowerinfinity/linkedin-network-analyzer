@@ -4,8 +4,6 @@
 logging_level: INFO
 log_file: linkedin_analyzer.log
 
-full_name: "Krishna Mehra"
-
 # Analysis Settings
 analysis:
   # Network Growth Analysis
