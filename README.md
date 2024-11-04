@@ -67,7 +67,7 @@ pip install -e .
 1. **Export your LinkedIn data**
    - Go to LinkedIn > Settings & Privacy > Get a copy of your data
    - Select "Connections" and "Messages"
-   - Download and extract the CSV files
+   - Download and extract the CSV files. You will need Connections, Messages and Profile CSV files for this utility
 
 2. **Configure the analyzer**
    ```yaml
@@ -83,17 +83,16 @@ pip install -e .
    ```
 
 3. **Run the analyzer**
-   ```bash
-   linkedin-analyzer analyze \
-       --config config/default_config.yml \
-       --connections path/to/Connections.csv \
-       --messages path/to/Messages.csv \
-       --output linkedin_insights \
-       --format all
+   Modify the necessary commandline parmeters in run.sh to point to the path. Assumes the CSV files are present in the `input` directory, specify the `output` directory where you want the utility to write the results.
+   ```
+   chmod +x run.sh
+   ./run.sh
    ```
 
 4. **View the results**
-   - Check generated visualizations in the `visualizations/` directory
+   
+   - Check generated visualizations in the `output/visualizations/` directory
+   - Check Reconnection recommendations in the `output/linkedin_insights*` files - title based and past messaging history based
    - Review the comprehensive report in your chosen format(s)
 
 ## 📊 Sample Output
@@ -116,37 +115,6 @@ pip install -e .
 }
 ```
 
-## 📈 Visualizations
-
-The analyzer generates several types of visualizations:
-
-1. Network Growth Chart
-   ![Network Growth](docs/images/network_growth_sample.png)
-
-2. Industry Distribution
-   ![Industry Distribution](docs/images/industry_distribution_sample.png)
-
-3. Message Activity Heatmap
-   ![Message Activity](docs/images/message_activity_sample.png)
-
-4. Interactive Network Graph
-   ![Network Graph](docs/images/network_graph_sample.png)
-
-## 🛠️ Development Setup
-
-```bash
-# Install development dependencies
-pip install -r requirements.txt
-
-# Run tests
-pytest tests/
-
-# Format code
-black src/
-
-# Check code quality
-flake8 src/
-```
 
 ## 🤝 Contributing
 
@@ -165,6 +133,9 @@ flake8 src/
    # For matplotlib issues on macOS
    pip install matplotlib --upgrade
    ```
+
+   - Check file paths
+   - Check if your LinkedIn download format might have changed
 
 2. **Visualization Libraries**
    ```bash
