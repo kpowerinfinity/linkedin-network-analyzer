@@ -1,0 +1,107 @@
+# LinkedIn Network Analyzer Configuration
+
+# Logging Configuration
+logging_level: INFO
+log_file: linkedin_analyzer.log
+
+full_name: "Krishna Mehra"
+
+# Analysis Settings
+analysis:
+  # Network Growth Analysis
+  growth_analysis:
+    min_connections: 50
+    trending_threshold: 0.5
+    seasonal_analysis: true
+    growth_metrics:
+      - monthly_growth
+      - quarterly_growth
+      - yearly_growth
+
+  # Industry Analysis
+  industry_analysis:
+    min_industry_size: 5
+    top_industries_count: 10
+    group_small_industries: true
+    small_industry_threshold: 3
+
+  # Message Analysis
+  message_analysis:
+    sentiment_analysis: true
+    response_time_threshold: 48  # hours
+    inactive_threshold: 90  # days
+    engagement_metrics:
+      - message_count
+      - response_rate
+      - average_response_time
+
+# Visualization Settings
+visualizations:
+  color_scheme:
+    primary: '#1B77B5'    # LinkedIn blue
+    secondary: '#00A0DC'
+    accent: '#313335'
+    background: '#FFFFFF'
+  
+  charts:
+    network_growth:
+      width: 1200
+      height: 600
+      show_trend_line: true
+      
+    industry_distribution:
+      width: 1000
+      height: 800
+      max_categories: 15
+      
+    activity_heatmap:
+      width: 1500
+      height: 800
+      color_scale:
+        - '#FFFFFF'
+        - '#00A0DC'
+        - '#1B77B5'
+
+    network_graph:
+      width: 1500
+      height: 1500
+      node_size: 50
+      edge_width: 1.5
+      show_labels: false
+
+# Export Settings
+export:
+  formats:
+    - json
+    - csv
+    - pdf
+    - html
+  
+  pdf:
+    page_size: A4
+    font_family: Arial
+    title_size: 16
+    body_size: 12
+    include_visualizations: true
+    
+  html:
+    responsive: true
+    include_charts: true
+    include_network_graph: true
+    theme: light
+    
+# Cache Settings
+cache:
+  enabled: true
+  directory: .cache
+  expiration: 86400  # 24 hours in seconds
+
+# Performance Settings
+performance:
+  batch_size: 1000
+  parallel_processing: true
+  max_workers: 4
+
+# Reconnection Settings
+reconnection:
+  max_suggestions_per_category: 20

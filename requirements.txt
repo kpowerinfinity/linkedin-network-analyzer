@@ -12,3 +12,5 @@ fpdf>=1.7.2
 pytest>=6.2.5
 black>=21.5b2
 flake8>=3.9.0
+kaleido>=0.2.1
+scipy>=1.10.0
